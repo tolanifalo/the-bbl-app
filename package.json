@@ -1,0 +1,23 @@
+{
+  "name": "bbl-warp-engine",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "THE BBL APP — Milestone 1: MLS (Moving Least Squares) image warp engine, in isolation.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "node test/mls.test.ts && node test/inpaint.test.ts",
+    "test:mls": "node test/mls.test.ts",
+    "test:inpaint": "node test/inpaint.test.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.35"
+  }
+}

@@ -1,0 +1,18 @@
+# dependencies
+node_modules/
+
+# build output (Vercel rebuilds this)
+dist/
+test-dist-unused/
+
+# vercel
+.vercel/
+
+# logs / os / editor
+npm-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+*.local
+.idea/
+.vscode/

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="24" fill="#16181d"/>
+  
+  <!-- Subtle inner border -->
+  <rect x="16" y="16" width="88" height="88" rx="12" stroke="rgba(255,255,255,0.05)" stroke-width="2"/>
+  
+  <!-- Abstract mesh grid (warped) -->
+  <path d="M 16 45 Q 60 30, 104 45" stroke="rgba(255,255,255,0.1)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 16 75 Q 60 90, 104 75" stroke="rgba(255,255,255,0.1)" stroke-width="2" stroke-linecap="round"/>
+  
+  <path d="M 45 16 Q 30 60, 45 104" stroke="rgba(255,255,255,0.1)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 75 16 Q 90 60, 75 104" stroke="rgba(255,255,255,0.1)" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Active warped line in accent color -->
+  <path d="M 45 16 C 45 40, 75 40, 75 104" stroke="#00d2ff" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Control points -->
+  <circle cx="60" cy="40" r="5" fill="#00d2ff"/>
+  <circle cx="60" cy="40" r="3" fill="#16181d"/>
+  
+  <circle cx="60" cy="80" r="4" fill="#fff"/>
+</svg>

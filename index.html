@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BBL Warp Engine — Milestone 1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div id="app">
+    <div id="stage">
+      <canvas id="gl"></canvas>
+      <canvas id="overlay"></canvas>
+      <div id="hud-label" class="hud-label"></div>
+      <div id="drop-hint">
+        <div class="drop-hint-inner">
+          <img src="/drop_hint_graphic.svg" alt="Warp Engine Graphic" class="drop-hint-graphic" />
+          <strong>Drop An Image Here</strong>
+          <span>or use “Open Image” / “Load Test Pattern” in the panel →</span>
+        </div>
+      </div>
+      <div id="hud">
+        <span id="fps">–</span>
+        <span id="mls-ms"></span>
+      </div>
+    </div>
+
+    <aside id="panel">
+      <h1>BBL Warp Engine</h1>
+      <p class="sub">M1 Warp · M2 Body Intelligence</p>
+
+      <section>
+        <div class="row">
+          <button id="open-file">Open Image</button>
+          <button id="load-test">Load Test Pattern</button>
+        </div>
+        <input id="file-input" type="file" accept="image/*" hidden />
+      </section>
+
+      <section>
+        <div class="list-head"><span>Body Sliders <em class="tag">M3</em></span></div>
+        <div class="srow">
+          <label class="slider"><span>Waist · Snatch <input id="s-waist-val" class="num-input" type="number" min="0" max="100" value="0" /></span>
+            <input id="s-waist" type="range" min="0" max="100" step="1" value="0" /></label>
+          <button class="mini" id="s-waist-reset" title="Reset">⟲</button>
+        </div>
+        <div class="srow">
+          <label class="slider"><span>Hips · Flare <input id="s-hips-val" class="num-input" type="number" min="0" max="100" value="0" /></span>
+            <input id="s-hips" type="range" min="0" max="100" step="1" value="0" /></label>
+          <button class="mini" id="s-hips-reset" title="Reset">⟲</button>
+        </div>
+        <div class="srow">
+          <label class="slider"><span>Bust · Enhance <input id="s-bust-val" class="num-input" type="number" min="0" max="100" value="0" /></span>
+            <input id="s-bust" type="range" min="0" max="100" step="1" value="0" /></label>
+          <button class="mini" id="s-bust-reset" title="Reset">⟲</button>
+        </div>
+        <div class="srow">
+          <label class="slider"><span>BBL Preset <input id="s-bbl-val" class="num-input" type="number" min="0" max="100" value="0" /></span>
+            <input id="s-bbl" type="range" min="0" max="100" step="1" value="0" /></label>
+          <button class="mini" id="s-bbl-reset" title="Reset">⟲</button>
+        </div>
+        <label class="check">
+          <input id="split" type="checkbox" />
+          <span>50 / 50 Before · After</span>
+        </label>
+        <button id="hold-compare" class="compare-btn">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"/></svg>
+          <span>Hold to Compare</span>
+        </button>
+        <button id="download" class="compare-btn" style="color: #a6ffcb; border-color: rgba(166, 255, 203, 0.2);">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"/></svg>
+          <span>Download PNG</span>
+        </button>
+      </section>
+
+      <details class="advanced-accordion">
+        <summary>Advanced</summary>
+        <div class="accordion-content">
+          <section>
+            <div class="list-head"><span>Slider Ceiling</span></div>
+            <input id="slider-ceiling" class="num-input" style="width: 100%; text-align: left; padding: 6px 10px;" type="number" min="10" max="2000" value="100" />
+          </section>
+          <section>
+            <div class="list-head"><span>Manual Warp <em class="tag alt">M1</em></span></div>
+            <label class="slider">
+              <span>Alpha <input id="alpha-val" class="num-input" type="number" min="0.2" max="3" step="0.05" value="1.2" /></span>
+              <input id="alpha" type="range" min="0.2" max="3" step="0.05" value="1.2" />
+            </label>
+            <label class="slider">
+              <span>Radius % <input id="radius-val" class="num-input" type="number" min="5" max="100" step="1" value="30" /></span>
+              <input id="radius" type="range" min="5" max="100" step="1" value="30" />
+            </label>
+            <label class="check">
+              <input id="localize" type="checkbox" checked />
+              <span>Localize Edits (Bounded Support)</span>
+            </label>
+          </section>
+
+          <section>
+            <label class="check">
+              <input id="wireframe" type="checkbox" />
+              <span>Mesh Wireframe</span>
+            </label>
+            <label class="check">
+              <input id="show-cp" type="checkbox" checked />
+              <span>Control Points</span>
+            </label>
+          </section>
+
+          <section>
+            <div class="list-head"><span>Body Intelligence <em class="tag">M2</em></span></div>
+            <label class="slider">
+              <span>Segmentation Model</span>
+              <select id="seg-model">
+                <option value="multiclass">Multiclass (Union)</option>
+                <option value="selfie">Selfie (Single-Class)</option>
+              </select>
+            </label>
+            <label class="check">
+              <input id="show-matte" type="checkbox" />
+              <span>Matte Tint (Red 40%)</span>
+            </label>
+            <label class="check">
+              <input id="show-pose" type="checkbox" />
+              <span>Pose Landmarks + Skeleton</span>
+            </label>
+            <label class="check">
+              <input id="show-contour" type="checkbox" />
+              <span>Contour Points (Bust/Waist/Hip)</span>
+            </label>
+            <div class="row">
+              <button id="redetect">Re-Detect</button>
+            </div>
+            <div id="detect-status" class="status">Models: Loading…</div>
+          </section>
+
+          <section class="row" style="grid-template-columns: 1fr 1fr;">
+            <button id="reset-view">Reset View</button>
+            <button id="clear">Clear Points</button>
+          </section>
+
+          <section>
+            <div class="list-head">
+              <span>Points <em id="cp-count">0 / 40</em></span>
+            </div>
+            <div id="points-list"></div>
+          </section>
+        </div>
+      </details>
+    </aside>
+    <button id="shortcuts-toggle" class="shortcuts-toggle hidden" title="Show Shortcuts">
+      <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,15A2,2 0 1,1 10,13A2,2 0 0,1 12,15M12,13C12,13 10,13 10,11C10,9 12,9 12,9C14,9 14,11 14,11A2,2 0 0,1 12,13M12,2A10,10 0 1,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 1,1 20,12A8,8 0 0,1 12,20Z"/></svg>
+    </button>
+    <div id="shortcuts-pane" class="shortcuts-pane">
+      <div class="shortcuts-header">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,15A2,2 0 1,1 10,13A2,2 0 0,1 12,15M12,13C12,13 10,13 10,11C10,9 12,9 12,9C14,9 14,11 14,11A2,2 0 0,1 12,13M12,2A10,10 0 1,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 1,1 20,12A8,8 0 0,1 12,20Z"/></svg>
+        <h3>Shortcuts & Controls</h3>
+        <button id="close-shortcuts" class="close-btn">&times;</button>
+      </div>
+      <div class="shortcuts-list">
+        <div class="shortcut-item"><div class="keys"><kbd>Click</kbd></div> <span>Add Warp Point</span></div>
+        <div class="shortcut-item"><div class="keys"><kbd>Shift</kbd> + <kbd>Click</kbd></div> <span>Add Anchor Pin</span></div>
+        <div class="shortcut-item"><div class="keys"><kbd>Del</kbd></div> <span>Delete Selected</span></div>
+        <div class="shortcut-item"><div class="keys"><kbd>Space</kbd></div> <span>Hold to Compare</span></div>
+        <div class="shortcut-item"><div class="keys"><kbd>Scroll</kbd></div> <span>Zoom In / Out</span></div>
+        <div class="shortcut-item"><div class="keys"><kbd>Drag</kbd></div> <span>Pan Canvas</span></div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>
