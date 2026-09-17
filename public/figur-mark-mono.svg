@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="FIGUR">
+  <title>FIGUR</title>
+  <!-- Single-colour variant: set `color` on the parent for black / white / reversed lockups. -->
+  <path d="M46 6C26 6 12 20 12 36 32 36 46 22 46 6Z" fill="currentColor"/>
+  <path d="M46 6C26 6 12 20 12 36 32 36 46 22 46 6Z" fill="currentColor" opacity=".72" transform="rotate(180 32 32)"/>
+</svg>

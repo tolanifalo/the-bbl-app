@@ -12,7 +12,7 @@ export async function exportComposite(
   personTexture: WebGLTexture | null,
   outW: number,
   outH: number,
-  fileName = "bbl-edit.png",
+  fileName = "figur-edit.png",
 ): Promise<void> {
   const colorTex = gl.createTexture()!;
   gl.bindTexture(gl.TEXTURE_2D, colorTex);

@@ -2,9 +2,12 @@ import type { Camera } from "./camera.ts";
 import type { ControlPointStore, ControlPoint } from "./controlPoints.ts";
 import type { WarpOptions } from "./state.ts";
 
-const COLOR_MOVING = "#33c6ff";
-const COLOR_ANCHOR = "#ffb020";
-const COLOR_ORIGIN = "#8a8f98";
+const COLOR_MOVING = "#E83E8C";
+/** White fill + Deep Black outline: the only pairing that holds on both dark
+ *  and light photos. Shape (diamond vs disc) keeps it distinct from a handle. */
+const COLOR_ANCHOR = "#FFFFFF";
+const COLOR_ANCHOR_LINE = "#151016";
+const COLOR_ORIGIN = "#ffffff";
 const COLOR_SELECT = "#ffffff";
 
 function isMoving(p: ControlPoint): boolean {
@@ -30,7 +33,7 @@ export function drawOverlay(
     const [sx, sy] = camera.toScreen(sel.ox, sel.oy);
     ctx.beginPath();
     ctx.arc(sx, sy, options.radius * camera.scale, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(51,198,255,0.25)";
+    ctx.strokeStyle = "rgba(232,62,140,0.35)";
     ctx.lineWidth = 1;
     ctx.setLineDash([5, 5]);
     ctx.stroke();
@@ -51,7 +54,7 @@ export function drawOverlay(
         ctx.beginPath();
         ctx.moveTo(ox, oy);
         ctx.lineTo(tx, ty);
-        ctx.strokeStyle = "rgba(51,198,255,0.7)";
+        ctx.strokeStyle = "rgba(232,62,140,0.85)";
         ctx.lineWidth = 1.5;
         ctx.stroke();
         // Hollow origin.
@@ -114,14 +117,15 @@ function drawDiamond(
     ctx.translate(-x, -y);
     path();
     ctx.restore();
-    ctx.strokeStyle = COLOR_SELECT;
-    ctx.lineWidth = 2;
+    // Pink halo: a white ring would vanish against the white anchor.
+    ctx.strokeStyle = COLOR_MOVING;
+    ctx.lineWidth = 2.5;
     ctx.stroke();
   }
   path();
   ctx.fillStyle = color;
   ctx.fill();
-  ctx.strokeStyle = "rgba(0,0,0,0.6)";
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = COLOR_ANCHOR_LINE;
+  ctx.lineWidth = 1.75;
   ctx.stroke();
 }

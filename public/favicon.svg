@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="FIGUR">
+  <title>FIGUR</title>
+  <rect width="64" height="64" rx="15" fill="#E83E8C"/>
+  <g transform="translate(32 32) scale(.68) translate(-32 -32)" fill="#fff">
+    <path d="M46 6C26 6 12 20 12 36 32 36 46 22 46 6Z"/>
+    <path d="M46 6C26 6 12 20 12 36 32 36 46 22 46 6Z" opacity=".75" transform="rotate(180 32 32)"/>
+  </g>
+</svg>

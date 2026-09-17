@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "THE BBL APP — Milestone 1: MLS (Moving Least Squares) image warp engine, in isolation.",
+  "description": "FIGUR by Patchman — a photo editor for your shape. MLS warp engine, body segmentation and compositing, in the browser.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

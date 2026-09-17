@@ -54,6 +54,24 @@ export function setupDevPanel(deps: DevPanelDeps): DevPanel {
   const countEl = el("cp-count");
   const fpsEl = el("fps");
   const mlsEl = el("mls-ms");
+  const detectStatusEl = el("detect-status");
+
+  /** Paint the pink filled portion of a range track (WebKit/Blink have no
+   *  native progress pseudo-element; Firefox uses ::-moz-range-progress). */
+  const paintRange = (r: HTMLInputElement): void => {
+    const min = Number(r.min || 0);
+    const max = Number(r.max || 100);
+    const pct = max > min ? ((Number(r.value) - min) / (max - min)) * 100 : 0;
+    r.style.setProperty("--fill", `${Math.max(0, Math.min(100, pct))}%`);
+  };
+  const paintAllRanges = (): void => {
+    document.querySelectorAll<HTMLInputElement>('input[type="range"]').forEach(paintRange);
+  };
+  // One delegated listener covers every range the user drags.
+  document.addEventListener("input", (e) => {
+    const t = e.target;
+    if (t instanceof HTMLInputElement && t.type === "range") paintRange(t);
+  });
 
   // M2 detection controls.
   const segModel = el<HTMLSelectElement>("seg-model");
@@ -92,12 +110,14 @@ export function setupDevPanel(deps: DevPanelDeps): DevPanel {
       const v = Math.min(Number(valEl.max), Math.max(Number(valEl.min), Number(valEl.value) || 0));
       sliders[key] = v;
       input.value = String(v);
+      paintRange(input);
       markDirty();
     });
     el(id + "-reset").addEventListener("click", () => {
       sliders[key] = 0;
       input.value = "0";
       valEl.value = "0";
+      paintRange(input);
       markDirty();
     });
   }
@@ -120,7 +140,8 @@ export function setupDevPanel(deps: DevPanelDeps): DevPanel {
       rngEl.value = String(sliders[key]);
       valEl.value = String(sliders[key]);
     }
-    
+
+    paintAllRanges();
     markDirty();
   });
 
@@ -145,7 +166,7 @@ export function setupDevPanel(deps: DevPanelDeps): DevPanel {
 
   const triggerCompare = (on: boolean) => {
     if (minDim === 0) {
-      if (on) showHud("SELECT AN IMAGE FIRST", "error", 1500);
+      if (on) showHud("Add a photo first", "error", 1600);
       return;
     }
     
@@ -156,9 +177,9 @@ export function setupDevPanel(deps: DevPanelDeps): DevPanel {
     markDirty();
 
     if (on) {
-      showHud("ORIGINAL", "original", 0); // Stays on
+      showHud("Original", "original", 0); // Stays on
     } else {
-      showHud("ENHANCED", "enhanced", 800);
+      showHud("Edited", "enhanced", 800);
     }
   };
   holdCompare.addEventListener("pointerdown", (e) => {
@@ -180,20 +201,6 @@ export function setupDevPanel(deps: DevPanelDeps): DevPanel {
     }
   });
 
-  const closeShortcuts = document.getElementById("close-shortcuts");
-  const shortcutsPane = document.getElementById("shortcuts-pane");
-  const shortcutsToggle = document.getElementById("shortcuts-toggle");
-  if (closeShortcuts && shortcutsPane && shortcutsToggle) {
-    closeShortcuts.addEventListener("click", () => {
-      shortcutsPane.classList.add("hidden");
-      shortcutsToggle.classList.remove("hidden");
-    });
-    shortcutsToggle.addEventListener("click", () => {
-      shortcutsToggle.classList.add("hidden");
-      shortcutsPane.classList.remove("hidden");
-    });
-  }
-
   let minDim = 0; // image min dimension, for % -> px radius
 
   const applyRadius = (): void => {
@@ -212,6 +219,7 @@ export function setupDevPanel(deps: DevPanelDeps): DevPanel {
     const v = Math.min(3, Math.max(0.2, Number((alphaVal as HTMLInputElement).value) || 1.2));
     options.alpha = v;
     alpha.value = String(v);
+    paintRange(alpha);
     markDirty();
   });
 
@@ -223,6 +231,7 @@ export function setupDevPanel(deps: DevPanelDeps): DevPanel {
   (radiusVal as HTMLInputElement).addEventListener("input", () => {
     const v = Math.min(100, Math.max(5, Number((radiusVal as HTMLInputElement).value) || 30));
     radius.value = String(v);
+    paintRange(radius);
     applyRadius();
     markDirty();
   });
@@ -253,29 +262,29 @@ export function setupDevPanel(deps: DevPanelDeps): DevPanel {
     debug.showContour = showContour.checked;
   });
   el("redetect").addEventListener("click", () => {
-    if (minDim === 0) return showHud("SELECT AN IMAGE FIRST", "error", 1500);
-    showHud("RE-DETECTING...", "info", 1000);
+    if (minDim === 0) return showHud("Add a photo first", "error", 1600);
+    showHud("Finding your shape", "info", 1000);
     deps.onRedetect();
   });
 
   el("download").addEventListener("click", () => {
-    if (minDim === 0) return showHud("SELECT AN IMAGE FIRST", "error", 1500);
-    showHud("EXPORTING...", "info", 0);
+    if (minDim === 0) return showHud("Add a photo first", "error", 1600);
     deps.onExport();
   });
   el("reset-view").addEventListener("click", () => {
-    if (minDim === 0) return showHud("SELECT AN IMAGE FIRST", "error", 1500);
-    showHud("VIEW RESET", "info", 800);
+    if (minDim === 0) return showHud("Add a photo first", "error", 1600);
+    showHud("View reset", "info", 800);
     deps.onResetView();
   });
   el("clear").addEventListener("click", () => {
-    if (minDim === 0) return showHud("SELECT AN IMAGE FIRST", "error", 1500);
-    showHud("POINTS CLEARED", "info", 800);
+    if (minDim === 0) return showHud("Add a photo first", "error", 1600);
+    showHud("Points cleared", "info", 800);
     store.clear();
     refreshList();
     markDirty();
   });
   el("open-file").addEventListener("click", () => fileInput.click());
+  el("empty-cta").addEventListener("click", () => fileInput.click());
   el("load-test").addEventListener("click", deps.onLoadTest);
   fileInput.addEventListener("change", () => {
     const f = fileInput.files?.[0];
@@ -343,6 +352,7 @@ export function setupDevPanel(deps: DevPanelDeps): DevPanel {
   showMatte.checked = debug.showMatte;
   showPose.checked = debug.showPose;
   showContour.checked = debug.showContour;
+  paintAllRanges();
   refreshList();
 
   return {
@@ -355,15 +365,19 @@ export function setupDevPanel(deps: DevPanelDeps): DevPanel {
       fpsEl.textContent = `${fps.toFixed(0)} fps`;
       mlsEl.textContent = mlsMs > 0 ? `MLS ${mlsMs.toFixed(1)} ms` : "";
     },
+    // Raw pipeline text goes to the Advanced readout; the on-stage pill stays
+    // in the product's voice.
     setDetectStatus(text: string, kind: "ok" | "err" | "busy" | "" = "") {
-      if (text.includes("models ready")) return; // Don't show models ready
-      if (text.includes("detecting")) return; // Already handled by re-detect click
-      const type = kind === "err" ? "error" : "info";
-      showHud(text.toUpperCase(), type, 2000);
+      detectStatusEl.textContent = text;
+      detectStatusEl.className = kind ? `status ${kind}` : "status";
+      if (kind === "busy") showHud("Finding your shape", "info", 0);
+      else if (kind === "err") showHud("Could not read that photo", "error", 2500);
+      else if (kind === "ok" && minDim > 0) showHud("Ready", "enhanced", 900);
     },
-    setEditStatus(text: string, kind: "ok" | "err" | "busy" | "" = "") {
-      const type = kind === "err" ? "error" : "info";
-      showHud(text.toUpperCase(), type, kind === "busy" ? 0 : 2000);
+    setEditStatus(_text: string, kind: "ok" | "err" | "busy" | "" = "") {
+      if (kind === "busy") showHud("Saving your photo", "info", 0);
+      else if (kind === "err") showHud("Could not save that photo", "error", 2500);
+      else showHud("Saved to your downloads", "enhanced", 1800);
     },
     syncSliders() {
       for (const [key, id] of sliderDefs) {
@@ -372,6 +386,7 @@ export function setupDevPanel(deps: DevPanelDeps): DevPanel {
         sliderVals[key].value = String(sliders[key]);
       }
       split.checked = view.split;
+      paintAllRanges();
     },
   };
 }

@@ -155,6 +155,7 @@ function loadSource(source: ImageSrc): void {
   panel.refreshList();
   camera.fit(nativeW, nativeH, stage.clientWidth, stage.clientHeight);
   dropHint.classList.add("hidden");
+  document.body.classList.add("has-photo"); // lets the layout reveal the controls
   meshDirty = true;
 
   detection = null;
@@ -374,17 +375,21 @@ function fitDims(w: number, h: number, maxLong: number): { w: number; h: number 
 }
 
 // ---- resize ----
-function syncCanvasSize(): void {
+/** Returns true when the drawing buffer actually changed size this frame. */
+function syncCanvasSize(): boolean {
   dpr = Math.min(window.devicePixelRatio || 1, 2);
   const dw = Math.round(stage.clientWidth * dpr);
   const dh = Math.round(stage.clientHeight * dpr);
+  let resized = false;
   if (glCanvas.width !== dw || glCanvas.height !== dh) {
     glCanvas.width = dw;
     glCanvas.height = dh;
     overlayCanvas.width = dw;
     overlayCanvas.height = dh;
+    resized = true;
   }
   octx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return resized;
 }
 
 // ---- render loop ----
@@ -392,9 +397,16 @@ let frames = 0;
 let fpsClock = performance.now();
 
 function frame(): void {
-  syncCanvasSize();
+  const resized = syncCanvasSize();
   const cssW = stage.clientWidth;
   const cssH = stage.clientHeight;
+
+  // Re-fit on stage resize (breakpoint change, rotation, window drag) so the
+  // photo is never left cropped or off-centre by a layout change.
+  if (resized && mesh && cssW > 0 && cssH > 0) {
+    camera.fit(nativeW, nativeH, cssW, cssH);
+    meshDirty = true;
+  }
 
   gl!.viewport(0, 0, glCanvas.width, glCanvas.height);
   gl!.clearColor(0, 0, 0, 0);
@@ -429,7 +441,7 @@ function frame(): void {
 
     drawDetectionOverlay(octx, camera, detection, debug);
     drawOverlay(octx, cssW, cssH, camera, store, options);
-    if (view.split && !options.showOriginal) drawSplitDivider(splitX, cssH);
+    if (view.split && !options.showOriginal) drawSplitDivider(splitX, cssW, cssH);
   }
 
   frames++;
@@ -444,45 +456,101 @@ function frame(): void {
 }
 requestAnimationFrame(frame);
 
-function drawSplitDivider(x: number, cssH: number): void {
+const FIGUR_PINK = "#E83E8C";
+const CHIP_FONT = "700 11px 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";
+
+function drawSplitDivider(x: number, cssW: number, cssH: number): void {
+  // Visible photo rect in CSS px. Everything below is clipped to it, so the
+  // divider never paints onto the stage background around the photo.
+  const [sx0, sy0] = camera.toScreen(0, 0);
+  const [sx1, sy1] = camera.toScreen(nativeW, nativeH);
+  const imgL = Math.max(0, Math.min(sx0, sx1));
+  const imgR = Math.min(cssW, Math.max(sx0, sx1));
+  const imgT = Math.max(0, Math.min(sy0, sy1));
+  const imgB = Math.min(cssH, Math.max(sy0, sy1));
+  if (imgR <= imgL || imgB <= imgT) return; // photo fully off-screen
+
   octx.save();
-  octx.strokeStyle = "rgba(255,255,255,0.9)";
-  octx.lineWidth = 1.5;
   octx.beginPath();
-  octx.moveTo(x, 0);
-  octx.lineTo(x, cssH);
+  octx.rect(imgL, imgT, imgR - imgL, imgB - imgT);
+  octx.clip();
+
+  // Divider (clipped to the photo's visible top and bottom edges).
+  octx.shadowColor = "rgba(21,16,22,0.35)";
+  octx.shadowBlur = 8;
+  octx.strokeStyle = "#ffffff";
+  octx.lineWidth = 2;
+  octx.beginPath();
+  octx.moveTo(x, imgT);
+  octx.lineTo(x, imgB);
   octx.stroke();
 
-  // Draw draggable handle
-  const cy = cssH / 2;
-  octx.fillStyle = "rgba(255,255,255,0.9)";
-  octx.shadowColor = "rgba(0,0,0,0.3)";
-  octx.shadowBlur = 6;
+  // Draggable handle, centred in the visible band of the photo.
+  const cy = (imgT + imgB) / 2;
+  octx.fillStyle = "#ffffff";
   octx.beginPath();
-  octx.arc(x, cy, 16, 0, Math.PI * 2);
+  octx.arc(x, cy, 18, 0, Math.PI * 2);
   octx.fill();
   octx.shadowColor = "transparent";
 
-  // Handle grips
-  octx.strokeStyle = "rgba(0,0,0,0.3)";
+  octx.strokeStyle = FIGUR_PINK;
   octx.lineWidth = 2;
+  octx.lineCap = "round";
   octx.beginPath();
-  octx.moveTo(x - 3, cy - 5);
-  octx.lineTo(x - 3, cy + 5);
-  octx.moveTo(x + 3, cy - 5);
-  octx.lineTo(x + 3, cy + 5);
+  octx.moveTo(x - 4.5, cy - 5);
+  octx.lineTo(x - 4.5, cy + 5);
+  octx.moveTo(x + 4.5, cy - 5);
+  octx.lineTo(x + 4.5, cy + 5);
   octx.stroke();
+  octx.lineCap = "butt";
 
-  octx.font = "600 11px ui-monospace, monospace";
-  octx.fillStyle = "rgba(255,255,255,0.85)";
-  octx.textBaseline = "middle";
-  octx.textAlign = "right";
-  octx.shadowColor = "rgba(0,0,0,0.8)";
-  octx.shadowBlur = 4;
-  octx.fillText("before", x - 24, cy);
-  octx.textAlign = "left";
-  octx.fillText("after", x + 24, cy);
+  // Chips sit on the photo too, using the same rect. Each is drawn only when
+  // its side of the photo is wide enough to hold it, so a divider near (or
+  // past) an edge labels just the side that is actually showing.
+  const chipY = Math.min(imgT + 14, Math.max(imgT, imgB - CHIP_H - 14));
+  octx.font = CHIP_FONT;
+  const wOriginal = Math.round(octx.measureText("ORIGINAL").width) + 24;
+  const wEdited = Math.round(octx.measureText("EDITED").width) + 24;
+
+  if (x - imgL >= wOriginal + 20) {
+    drawChip("ORIGINAL", x - 12, "right", "rgba(21,16,22,0.82)", chipY, imgL, imgR, cssW);
+  }
+  if (imgR - x >= wEdited + 20) {
+    drawChip("EDITED", x + 12, "left", FIGUR_PINK, chipY, imgL, imgR, cssW);
+  }
+
   octx.restore();
+}
+
+const CHIP_H = 26;
+
+/** Rounded label pill, kept inside the visible photo and inside the stage. */
+function drawChip(
+  text: string,
+  anchorX: number,
+  align: "left" | "right",
+  bg: string,
+  y: number,
+  imgL: number,
+  imgR: number,
+  cssW: number,
+): void {
+  octx.font = CHIP_FONT;
+  const w = Math.round(octx.measureText(text).width) + 24;
+  let left = align === "right" ? anchorX - w : anchorX;
+  left = Math.max(imgL + 10, Math.min(imgR - w - 10, left)); // stay on the photo
+  left = Math.max(8, Math.min(cssW - w - 8, left)); // never leave the stage
+
+  octx.fillStyle = bg;
+  octx.beginPath();
+  if (octx.roundRect) octx.roundRect(left, y, w, CHIP_H, CHIP_H / 2);
+  else octx.rect(left, y, w, CHIP_H);
+  octx.fill();
+
+  octx.fillStyle = "#ffffff";
+  octx.textAlign = "center";
+  octx.textBaseline = "middle";
+  octx.fillText(text, left + w / 2, y + CHIP_H / 2 + 0.5);
 }
 
 // ---- drag & drop ----
