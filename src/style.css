@@ -262,13 +262,15 @@ p {
   box-shadow: var(--shadow-md);
 }
 
+/* Primary CTAs only (#empty-cta, #download). Everything else stays flat:
+   slider fills, active states, focus rings, borders and secondary controls. */
 .btn-primary {
-  background: var(--pink-cta);
+  background: linear-gradient(90deg, var(--pink-cta) 0%, var(--pink-press) 100%);
   color: var(--white);
 }
 
 .btn-primary:hover {
-  background: var(--pink-press);
+  background: linear-gradient(90deg, var(--pink-press) 0%, #B32866 100%);
 }
 
 .btn-primary:active {
